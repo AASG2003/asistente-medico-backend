@@ -1,0 +1,6 @@
+Django==5.2.18
+djangorestframework==3.17.2
+drf-spectacular==0.30.0
+google-genai==2.31.0
+python-dotenv==1.2.4
+dj-database-url==3.1.2

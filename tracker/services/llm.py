@@ -178,6 +178,14 @@ def _rule_based_extraction(user_prompt: str) -> dict:
         add("cafe", "habit", "cups", _to_number(coffee.group(0)) if coffee else None,
             "missing_quantity", "¿Cuántas tazas de café tomaste?")
 
+    screen = re.search(rf"(celular|computadora)\D{{0,20}}?{_NUMBER}\s*h", text) or re.search(
+        rf"{_NUMBER}\s*h\w*\s+(?:en|con|de)\s+(?:el|la)\s+(celular|computadora)", text
+    )
+    if screen:
+        device = next(group for group in screen.groups() if not re.fullmatch(_NUMBER, group))
+        add(f"uso de {device}", "habit", "hours", _to_number(screen.group(0)),
+            "missing_quantity", f"¿Cuántas horas usaste el {device}?")
+
     headache = re.search(r"(dolor de cabeza|(?:duele|doli\w*) la cabeza|cefalea)(.{0,40})", text)
     if headache:
         tail = headache.group(2)

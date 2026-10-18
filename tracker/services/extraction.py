@@ -148,9 +148,14 @@ You extract structured health-tracking data from short personal notes.
 The notes are usually written in Spanish. Reply with JSON only, no prose, no markdown.
 
 Each fact in the note becomes one record:
-- kind "habit": an action or behavior with a quantity (sleep, coffee, exercise, water).
+- kind "habit": an action or behavior with a quantity (sleep, coffee, exercise, water,
+  phone or computer use, alcohol, meals, cigarettes, medication).
 - kind "symptom": a physical complaint (headache, nausea, back pain).
 - kind "state": a mental or emotional state (stress, anxiety, low mood, energy).
+
+When the note says one thing caused another ("por usar el celular 5 horas me dolio la cabeza"),
+record BOTH as separate records: the cause (usually a habit, with its quantity) and the effect.
+Never drop a fact because it is mentioned as an explanation; relations are analyzed later.
 
 Rules:
 1. Reuse a name from "Known concepts" (or one of its aliases) whenever the meaning matches.

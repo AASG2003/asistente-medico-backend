@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from tracker.models import Concept, Entry, Record
 from tracker.services.context import load_context
 from tracker.services.extraction import (
+    SYSTEM_PROMPT,
     AnsweredQuestion,
     ConceptInfo,
     ExtractionContext,
@@ -81,6 +82,13 @@ class ParseResponseTests(SimpleTestCase):
             parse_response("I could not understand the note.")
 
 
+class SystemPromptTests(SimpleTestCase):
+    def test_asks_to_record_causes_as_separate_facts(self):
+        # Gemma used to drop the habit in "por usar el celular me dolio la cabeza".
+        self.assertIn("record BOTH as separate records", SYSTEM_PROMPT)
+        self.assertIn("phone or computer use", SYSTEM_PROMPT)
+
+
 class BuildUserPromptTests(SimpleTestCase):
     def test_includes_catalog_history_text_and_answers(self):
         context = ExtractionContext(
@@ -136,6 +144,19 @@ class RuleBasedFakeClientTests(SimpleTestCase):
         self.assertEqual(
             {q.reason for q in result.questions}, {"missing_quantity", "missing_intensity"}
         )
+
+    def test_cause_and_effect_are_both_recorded(self):
+        cases = [
+            "Por usar el celular 5 horas me dolió la cabeza",
+            "Usé la computadora 5 horas y me dolió la cabeza fuerte",
+            "Estuve 5 horas en el celular y me dolió la cabeza",
+        ]
+        for text in cases:
+            with self.subTest(text=text):
+                records = {r.concept: r for r in self.run_fake(text).records}
+                habit = next(r for name, r in records.items() if name.startswith("uso de"))
+                self.assertEqual((habit.kind, habit.value, habit.unit), ("habit", 5, "hours"))
+                self.assertEqual(records["dolor de cabeza"].kind, "symptom")
 
     def test_reads_intensity_words(self):
         cases = {"muy fuerte": 9, "fuerte": 8, "muy": 7, "leve": 3}
